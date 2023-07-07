@@ -1,25 +1,50 @@
 import { View, Text, Image, StyleSheet, Button} from 'react-native'
-import {React, useLayoutEffect} from 'react'
+import {React, useContext, useLayoutEffect} from 'react'
 import { MEALS } from '../data/dummy-data'
 import MealDetails from '../components/MealDetails';
 import Subtitle from '../components/MealDetail/Subtitle';
 import List from '../components/MealDetail/List';
 import { ScrollView } from 'react-native';
 import IconButton from '../components/IconButton';
+import { FavouriteContext } from '../store/context/favourite_context';
+import { useDispatch, useSelector } from 'react-redux';
+import { addFavourite,removeFavourite } from '../store/redux/store';
 export default function MealDetail({ route, navigation }) {
   const id = route.params.item.id;
   const mealInfor = MEALS.find((meal) => meal.id === id);
+
+
+  const favMealsId= useSelector((state)=>state.favouriteMeals.ids)
+
+  const isFavRedux = favMealsId.includes(id);
+  // dùng useDispatch hook để gửi action tới reducer
+  const disPatch = useDispatch()
   function FavOnPress(){
-    console.log('Mark as fav');
+    // if(isFav){
+    //   favCtx.remove(id)
+    // }
+    // else{
+    //   favCtx.add(id)
+    // }
+    if(isFavRedux){
+      disPatch(removeFavourite({id:id}))
+    }
+    else{
+      disPatch(addFavourite({id:id}))
+    }
+    
   }
   useLayoutEffect(()=>{
     navigation.setOptions(
       {
         title: route.params.item.title,
-        headerRight: () => { return <IconButton onPress={FavOnPress}/> }
+        headerRight: () => { return <IconButton name={isFavRedux?'star':'star-outline'} onPress={FavOnPress}/> }
       }
     )
   },[navigation,FavOnPress])
+
+  const favCtx=useContext(FavouriteContext)
+  const isFav= favCtx.ids.includes(id)
   return (
     <ScrollView>
       <View style={styles.container}>
